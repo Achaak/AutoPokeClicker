@@ -18,19 +18,17 @@
   const handleStartAutoClicker = () => {
     window.autoClickInterval = setInterval(() => {
       const clickableZone = $(".battle-view .clickable");
-      if(!clickableZone) return
+      if (!clickableZone) return;
 
-      const dataBind = clickableZone.attr('data-bind')
-      if(!dataBind) return
+      const dataBind = clickableZone.attr("data-bind");
+      if (!dataBind) return;
 
-      if(dataBind.includes("Battle.clickAttack")) {
-        Battle.clickAttack()
-      }
-      else if(dataBind.includes("DungeonRunner.handleClick")) {
-        DungeonRunner.handleClick()
-      }
-      else if(dataBind.includes("GymBattle.clickAttack")) {
-        GymBattle.clickAttack()
+      if (dataBind.includes("GymBattle.clickAttack")) {
+        GymBattle.clickAttack();
+      } else if (dataBind.includes("DungeonRunner.handleClick")) {
+        DungeonRunner.handleClick();
+      } else if (dataBind.includes("Battle.clickAttack")) {
+        Battle.clickAttack();
       }
     }, 50);
 
@@ -199,11 +197,14 @@
   // Auto Farm
   const handleStartAutoFarm = () => {
     window.autoFarmInterval = setInterval(() => {
-      App.game.farming.harvestAll()
-      const berrys = FarmController.getUnlockedBerryList()
-      const ber = berrys.map(e => ({id:e, count: App.game.farming.berryList[e]()}))
-      const berry = ber.sort((a, b) => a.count - b.count)[0]
-      App.game.farming.plantAll(berry.id)
+      App.game.farming.harvestAll();
+      const berrys = FarmController.getUnlockedBerryList();
+      const ber = berrys.map((e) => ({
+        id: e,
+        count: App.game.farming.berryList[e](),
+      }));
+      const berry = ber.sort((a, b) => a.count - b.count)[0];
+      App.game.farming.plantAll(berry.id);
     }, 10000);
 
     const element = $("#btn-autoFarm");
