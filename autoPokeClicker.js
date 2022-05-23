@@ -14,215 +14,192 @@
 (function () {
   "use strict";
 
-  // Auto Click
-  const handleStartAutoClicker = () => {
-    window.autoClickInterval = setInterval(() => {
-      const clickableZone = $(".battle-view .clickable");
-      if (!clickableZone) return;
+  function keyGen(keyLength) {
+    var i,
+      key = "",
+      characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    var charactersLength = characters.length;
 
-      const dataBind = clickableZone.attr("data-bind");
-      if (!dataBind) return;
+    for (i = 0; i < keyLength; i++) {
+      key += characters.substr(
+        Math.floor(Math.random() * charactersLength + 1),
+        1
+      );
+    }
 
-      if (dataBind.includes("GymBattle.clickAttack")) {
-        GymBattle.clickAttack();
-      } else if (dataBind.includes("DungeonRunner.handleClick")) {
-        DungeonRunner.handleClick();
-      } else if (dataBind.includes("Battle.clickAttack")) {
-        Battle.clickAttack();
-      }
-    }, 50);
+    return key;
+  }
 
-    const element = $("#btn-autoClicker");
-    element.html("Stop");
-    element.addClass("btn-danger").removeClass("btn-success");
-    element.attr("onclick", "handleStopAutoClicker()");
+  const createButton = ({ start, stop = () => {}, name }) => {
+    const id = keyGen(12);
+    const startName = `${id}Start`;
+    const stopName = `${id}Stop`;
+
+    window[startName] = () => {
+      start();
+
+      const element = $(`#${id}`);
+      element.html("Stop");
+      element.addClass("btn-danger").removeClass("btn-success");
+      element.attr("onclick", `${stopName}()`);
+    };
+
+    window[stopName] = () => {
+      stop();
+
+      const element = $(`#${id}`);
+      element.html("Start");
+      element.addClass("btn-success").removeClass("btn-danger");
+      element.attr("onclick", `${startName}()`);
+    };
+
+    return `
+      <tr>
+        <td>
+          ${name}
+        </td>
+        <td>
+          <button id="${id}" class="btn btn-success btn-sm btn-block p-0" onClick="${startName}()">Start</button>
+        </td>
+      </tr>`;
   };
-  window.handleStartAutoClicker = handleStartAutoClicker;
 
-  const handleStopAutoClicker = () => {
-    clearInterval(window.autoClickInterval);
+  const autoClickerTr = createButton({
+    name: "Auto Clicker",
+    start: () => {
+      window.autoHatcheryInterval = setInterval(() => {
+        const clickableZone = $(".battle-view .clickable");
+        if (!clickableZone) return;
 
-    const element = $("#btn-autoClicker");
-    element.html("Start");
-    element.addClass("btn-success").removeClass("btn-danger");
-    element.attr("onclick", "handleStartAutoClicker()");
-  };
-  window.handleStopAutoClicker = handleStopAutoClicker;
+        const dataBind = clickableZone.attr("data-bind");
+        if (!dataBind) return;
 
-  // Auto Hatchery
-  const handleStartAutoHatchery = () => {
-    window.autoHatcheryInterval = setInterval(() => {
-      // Je clique sur les 4 slots d'oeufs
-      for (let index = 0; index < 4; index++) {
-        App.game.breeding.hatchPokemonEgg(index);
-      }
+        if (dataBind.includes("GymBattle.clickAttack")) {
+          GymBattle.clickAttack();
+        } else if (dataBind.includes("DungeonRunner.handleClick")) {
+          DungeonRunner.handleClick();
+        } else if (dataBind.includes("Battle.clickAttack")) {
+          Battle.clickAttack();
+        }
+      }, 50);
+    },
+    stop: () => {
+      clearInterval(window.autoHatcheryInterval);
+    },
+  });
 
-      const pokemons = PartyController.getSortedList()
-        .filter((p) => p.breeding === false && p.level === 100)
-        .slice(0, 4);
-      for (const pok of pokemons) {
-        if (App.game.breeding.hasFreeEggSlot()) {
-          App.game.breeding.addPokemonToHatchery(pok);
+  const autoHatcheryTr = createButton({
+    name: "Auto Hatchery",
+    start: () => {
+      window.autoHatcheryInterval = setInterval(() => {
+        // Je clique sur les 4 slots d'oeufs
+        for (let index = 0; index < 4; index++) {
+          App.game.breeding.hatchPokemonEgg(index);
+        }
+
+        const pokemons = PartyController.getSortedList()
+          .filter((p) => p.breeding === false && p.level === 100)
+          .slice(0, 4);
+        for (const pok of pokemons) {
+          if (App.game.breeding.hasFreeEggSlot()) {
+            App.game.breeding.addPokemonToHatchery(pok);
+          }
+        }
+      }, 1000);
+    },
+    stop: () => {
+      clearInterval(window.autoHatcheryInterval);
+    },
+  });
+
+  const autoGymTr = createButton({
+    name: "Auto Gym",
+    start: () => {
+      window.autoArenaInterval = setInterval(() => {
+        const element = $('button:contains("gym")');
+
+        if (element) {
+          element.click();
+        }
+      }, 1000);
+    },
+    stop: () => {
+      clearInterval(window.autoArenaInterval);
+    },
+  });
+
+  const autoDungeonTr = createButton({
+    name: "Auto Dungeon",
+    start: () => {
+      window.autoDungeonInterval = setInterval(() => {
+        const element = $('button[onclick*="initializeDungeon"]');
+
+        if (element) {
+          element.click();
+        }
+      }, 1000);
+    },
+    stop: () => {
+      clearInterval(window.autoDungeonInterval);
+    },
+  });
+
+  const allTtemsTr = createButton({
+    name: "All Items",
+    start: () => {
+      for (let index = 0; index < App.game.oakItems.itemList.length; index++) {
+        const item = App.game.oakItems.itemList[index];
+
+        if (item.purchased !== false) {
+          item.isActive = true;
         }
       }
-    }, 1000);
+    },
+    stop: () => {
+      for (let index = 0; index < App.game.oakItems.itemList.length; index++) {
+        const item = App.game.oakItems.itemList[index];
 
-    const element = $("#btn-autoHatchery");
-    element.html("Stop");
-    element.addClass("btn-danger").removeClass("btn-success");
-    element.attr("onclick", "handleStopAutoHatchery()");
-  };
-  window.handleStartAutoHatchery = handleStartAutoHatchery;
-
-  const handleStopAutoHatchery = () => {
-    clearInterval(window.autoHatcheryInterval);
-
-    const element = $("#btn-autoHatchery");
-    element.html("Start");
-    element.addClass("btn-success").removeClass("btn-danger");
-    element.clic.attr("onclick", "handleStartAutoHatchery()");
-  };
-  window.handleStopAutoHatchery = handleStopAutoHatchery;
-
-  // Auto Arena
-  const handleStartAutoArena = () => {
-    window.autoArenaInterval = setInterval(() => {
-      const element = $('button:contains("gym")');
-
-      if (element) {
-        element.click();
+        item.isActive = false;
       }
-    }, 1000);
+    },
+  });
 
-    const element = $("#btn-autoArena");
-    element.html("Stop");
-    element.addClass("btn-danger").removeClass("btn-success");
-    element.attr("onclick", "handleStopAutoArena()");
-  };
-  window.handleStartAutoArena = handleStartAutoArena;
+  const autoBombTr = createButton({
+    name: "Auto Bomb",
+    start: () => {
+      window.autoBombInterval = setInterval(() => {
+        if (App.game.underground.energy >= 30) {
+          Mine.bomb();
+        }
+      }, 1000);
+    },
+    stop: () => {
+      clearInterval(window.autoBombInterval);
+    },
+  });
 
-  const handleStopAutoArena = () => {
-    clearInterval(window.autoArenaInterval);
+  const autoFarmTr = createButton({
+    name: "Auto Farm",
+    start: () => {
+      window.autoFarmInterval = setInterval(() => {
+        App.game.farming.harvestAll();
+        const berrys = FarmController.getUnlockedBerryList();
+        const ber = berrys.map((e) => ({
+          id: e,
+          count: App.game.farming.berryList[e](),
+        }));
+        const berry = ber
+          .filter((a) => a.count !== 0)
+          .sort((a, b) => a.count - b.count)[0];
+        App.game.farming.plantAll(berry.id);
+      }, 10000);
 
-    const element = $("#btn-autoArena");
-    element.html("Start");
-    element.addClass("btn-success").removeClass("btn-danger");
-    element.attr("onclick", "handleStartAutoArena()");
-  };
-  window.handleStopAutoArena = handleStopAutoArena;
-
-  // Auto Dungeon
-  const handleStartAutoDungeon = () => {
-    window.autoDungeonInterval = setInterval(() => {
-      const element = $('button[onclick*="initializeDungeon"]');
-
-      if (element) {
-        element.click();
-      }
-    }, 1000);
-
-    const element = $("#btn-autoDungeon");
-    element.html("Stop");
-    element.addClass("btn-danger").removeClass("btn-success");
-    element.attr("onclick", "handleStopAutoDungeon()");
-  };
-  window.handleStartAutoDungeon = handleStartAutoDungeon;
-
-  const handleStopAutoDungeon = () => {
-    clearInterval(window.autoDungeonInterval);
-
-    const element = $("#btn-autoDungeon");
-    element.html("Start");
-    element.addClass("btn-success").removeClass("btn-danger");
-    element.attr("onclick", "handleStartAutoDungeon()");
-  };
-  window.handleStopAutoDungeon = handleStopAutoDungeon;
-
-  // All Items
-  const handleAddAllItems = () => {
-    for (let index = 0; index < App.game.oakItems.itemList.length; index++) {
-      const item = App.game.oakItems.itemList[index];
-
-      if (item.purchased !== false) {
-        item.isActive = true;
-      }
-    }
-
-    const element = $("#btn-allItems");
-    element.html("Unactive");
-    element.addClass("btn-danger").removeClass("btn-success");
-    element.attr("onclick", "handleRemoveAllItems()");
-  };
-  window.handleAddAllItems = handleAddAllItems;
-
-  const handleRemoveAllItems = () => {
-    for (let index = 0; index < App.game.oakItems.itemList.length; index++) {
-      const item = App.game.oakItems.itemList[index];
-
-      item.isActive = false;
-    }
-
-    const element = $("#btn-allItems");
-    element.html("Active");
-    element.addClass("btn-success").removeClass("btn-danger");
-    element.attr("onclick", "handleAddAllItems()");
-  };
-  window.handleRemoveAllItems = handleRemoveAllItems;
-
-  // Auto Bomb
-  const handleStartAutoBomb = () => {
-    window.autoBombInterval = setInterval(() => {
-      if (App.game.underground.energy >= 30) {
-        Mine.bomb();
-      }
-    }, 1000);
-
-    const element = $("#btn-autoBomb");
-    element.html("Stop");
-    element.addClass("btn-danger").removeClass("btn-success");
-    element.attr("onclick", "handleStopAutoBomb()");
-  };
-  window.handleStartAutoBomb = handleStartAutoBomb;
-
-  const handleStopAutoBomb = () => {
-    clearInterval(window.autoBombInterval);
-
-    const element = $("#btn-autoBomb");
-    element.html("Start");
-    element.addClass("btn-success").removeClass("btn-danger");
-    element.attr("onclick", "handleStartAutoBomb()");
-  };
-  window.handleStopAutoBomb = handleStopAutoBomb;
-
-  // Auto Farm
-  const handleStartAutoFarm = () => {
-    window.autoFarmInterval = setInterval(() => {
-      App.game.farming.harvestAll();
-      const berrys = FarmController.getUnlockedBerryList();
-      const ber = berrys.map((e) => ({
-        id: e,
-        count: App.game.farming.berryList[e](),
-      }));
-      const berry = ber.sort((a, b) => a.count - b.count)[0];
-      App.game.farming.plantAll(berry.id);
-    }, 10000);
-
-    const element = $("#btn-autoFarm");
-    element.html("Stop");
-    element.addClass("btn-danger").removeClass("btn-success");
-    element.attr("onclick", "handleStopAutoFarm()");
-  };
-  window.handleStartAutoFarm = handleStartAutoFarm;
-
-  const handleStopAutoFarm = () => {
-    clearInterval(window.autoFarmInterval);
-
-    const element = $("#btn-autoFarm");
-    element.html("Start");
-    element.addClass("btn-success").removeClass("btn-danger");
-    element.attr("onclick", "handleStartAutoFarm()");
-  };
-  window.handleStopAutoFarm = handleStopAutoFarm;
+      window.autoFarmInterval();
+    },
+    stop: () => {
+      clearInterval(window.autoFarmInterval);
+    },
+  });
 
   const tool = document.createElement("div");
   tool.className = "card sortable border-secondary mb-3";
@@ -231,62 +208,13 @@
     <div class="card-body p-0 show table-responsive">
       <table class="table table-striped table-hover table-sm m-0">
         <tbody>
-          <tr>
-            <td>
-              Auto Clicker
-            </td>
-            <td>
-              <button id="btn-autoClicker" class="btn btn-success btn-sm btn-block p-0" onClick="handleStartAutoClicker()">Start</button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Auto Arena
-            </td>
-            <td>
-              <button id="btn-autoArena" class="btn btn-success btn-sm btn-block p-0" onClick="handleStartAutoArena()">Start</button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Auto Dungeon
-            </td>
-            <td>
-              <button id="btn-autoDungeon" class="btn btn-success btn-sm btn-block p-0" onClick="handleStartAutoDungeon()">Start</button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Auto Hatchery
-            </td>
-            <td>
-              <button id="btn-autoHatchery" class="btn btn-success btn-sm btn-block p-0" onClick="handleStartAutoHatchery()">Start</button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              All Items
-            </td>
-            <td>
-              <button id="btn-allItems" class="btn btn-success btn-sm btn-block p-0" onClick="handleAddAllItems()">Active</button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Auto Bomb
-            </td>
-            <td>
-              <button id="btn-autoBomb" class="btn btn-success btn-sm btn-block p-0" onClick="handleStartAutoBomb()">Start</button>
-            </td>
-          </tr>
-          <tr>
-          <td>
-            Auto Farm
-          </td>
-          <td>
-            <button id="btn-autoFarm" class="btn btn-success btn-sm btn-block p-0" onClick="handleStartAutoFarm()">Start</button>
-          </td>
-        </tr>
+          ${autoClickerTr}
+          ${autoHatcheryTr}
+          ${autoGymTr}
+          ${autoDungeonTr}
+          ${allTtemsTr}
+          ${autoBombTr}
+          ${autoFarmTr}
         </tbody>
       </table>
     </div>
