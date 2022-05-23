@@ -196,6 +196,33 @@
   };
   window.handleStopAutoBomb = handleStopAutoBomb;
 
+  // Auto Farm
+  const handleStartAutoFarm = () => {
+    window.autoFarmInterval = setInterval(() => {
+      App.game.farming.harvestAll()
+      const berrys = FarmController.getUnlockedBerryList()
+      const ber = berrys.map(e => ({id:e, count: App.game.farming.berryList[e]()}))
+      const berry = ber.sort((a, b) => a.count - b.count)[0]
+      App.game.farming.plantAll(berry.id)
+    }, 10000);
+
+    const element = $("#btn-autoFarm");
+    element.html("Stop");
+    element.addClass("btn-danger").removeClass("btn-success");
+    element.attr("onclick", "handleStopAutoFarm()");
+  };
+  window.handleStartAutoFarm = handleStartAutoFarm;
+
+  const handleStopAutoFarm = () => {
+    clearInterval(window.autoFarmInterval);
+
+    const element = $("#btn-autoFarm");
+    element.html("Start");
+    element.addClass("btn-success").removeClass("btn-danger");
+    element.attr("onclick", "handleStartAutoFarm()");
+  };
+  window.handleStopAutoFarm = handleStopAutoFarm;
+
   const tool = document.createElement("div");
   tool.className = "card sortable border-secondary mb-3";
   tool.innerHTML = `
@@ -248,9 +275,17 @@
               Auto Bomb
             </td>
             <td>
-              <button id="btn-autoBomb" class="btn btn-success btn-sm btn-block p-0" onClick="handleStartAutoBomb()">Active</button>
+              <button id="btn-autoBomb" class="btn btn-success btn-sm btn-block p-0" onClick="handleStartAutoBomb()">Start</button>
             </td>
           </tr>
+          <tr>
+          <td>
+            Auto Farm
+          </td>
+          <td>
+            <button id="btn-autoFarm" class="btn btn-success btn-sm btn-block p-0" onClick="handleStartAutoFarm()">Start</button>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -259,20 +294,4 @@
   const leftColumn = $("#left-column");
 
   leftColumn.append(tool);
-})();
-// ==UserScript==
-// @name         New Userscript
-// @namespace    http://tampermonkey.net/
-// @version      0.1
-// @description  try to take over the world!
-// @author       You
-// @match        http://*/*
-// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
-// @grant        none
-// ==/UserScript==
-
-(function() {
-    'use strict';
-
-    // Your code here...
 })();
