@@ -7,8 +7,8 @@
 // @match        https://www.pokeclicker.com//
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=pokeclicker.com
 // @grant        none
-// @updateURL    https://gist.githubusercontent.com/raw/1129e4ffce89fd029080ffb906e178b6
-// @downloadURL  https://gist.githubusercontent.com/raw/1129e4ffce89fd029080ffb906e178b6
+// @updateURL    https://raw.githubusercontent.com/Achaak/AutoPokeClicker/main/autoPokeClicker.js
+// @downloadURL  https://raw.githubusercontent.com/Achaak/AutoPokeClicker/main/autoPokeClicker.js
 // ==/UserScript==
 
 (function () {
