@@ -181,7 +181,7 @@
   const autoFarmTr = createButton({
     name: "Auto Farm",
     start: () => {
-      window.autoFarmInterval = setInterval(() => {
+      const f = () => {
         App.game.farming.harvestAll();
         const berrys = FarmController.getUnlockedBerryList();
         const ber = berrys.map((e) => ({
@@ -192,9 +192,13 @@
           .filter((a) => a.count !== 0)
           .sort((a, b) => a.count - b.count)[0];
         App.game.farming.plantAll(berry.id);
+      };
+
+      window.autoFarmInterval = setInterval(() => {
+        f();
       }, 10000);
 
-      window.autoFarmInterval();
+      f();
     },
     stop: () => {
       clearInterval(window.autoFarmInterval);
