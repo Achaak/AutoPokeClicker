@@ -194,9 +194,7 @@
         App.game.farming.plantAll(berry.id);
       };
 
-      window.autoFarmInterval = setInterval(() => {
-        f();
-      }, 10000);
+      window.autoFarmInterval = setInterval(f, 10000);
 
       f();
     },
