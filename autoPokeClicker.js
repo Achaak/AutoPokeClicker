@@ -123,7 +123,7 @@
         if (element) {
           element.click();
         }
-      }, 1000);
+      }, 100);
     },
     stop: () => {
       clearInterval(window.autoArenaInterval);
@@ -308,6 +308,42 @@
     },
   });
 
+  const autoRouteTr = createButton({
+    name: "Auto Route",
+    start: () => {
+      const f = () => {
+        const route = Routes.regionRoutes
+          .map((r) => ({
+            access: MapHelper.accessToRoute(r.number, r.region),
+            isAchievementsComplete: RouteHelper.isAchievementsComplete(
+              r.number,
+              r.region
+            ),
+            isComplete: RouteHelper.routeCompleted(
+              r.number,
+              r.region,
+              true,
+              true
+            ),
+            route: r.number,
+            region: r.region,
+          }))
+          .filter(
+            (r) => r.access && !(r.isAchievementsComplete && r.isComplete)
+          );
+
+        MapHelper.moveToRoute(route[0].route, route[0].region);
+      };
+
+      window.autoFarmInterval = setInterval(f, 10000);
+
+      f();
+    },
+    stop: () => {
+      clearInterval(window.autoFarmInterval);
+    },
+  });
+
   const tool = document.createElement("div");
   tool.className = "card sortable border-secondary mb-3";
   tool.innerHTML = `
@@ -322,6 +358,7 @@
           ${allTtemsTr}
           ${autoMineTr}
           ${autoFarmTr}
+          ${autoRouteTr}
         </tbody>
       </table>
     </div>
