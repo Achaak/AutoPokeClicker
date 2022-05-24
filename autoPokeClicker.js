@@ -259,17 +259,27 @@
     },
   });
 
-  const autoBombTr = createButton({
-    name: "Auto Bomb",
+  const autoMineTr = createButton({
+    name: "Auto Mine",
     start: () => {
-      window.autoBombInterval = setInterval(() => {
-        if (App.game.underground.energy >= 30) {
-          Mine.bomb();
+      window.autoMineInterval = setInterval(() => {
+        if (Math.floor(App.game.underground.energy) > 0) {
+          for (let i = 0; i < Mine.rewardGrid.length; i++) {
+            const line = Mine.rewardGrid[i];
+
+            for (let j = 0; j < line.length; j++) {
+              const cell = line[j];
+
+              if (cell !== 0 && cell.revealed === 0) {
+                Mine.chisel(i, j);
+              }
+            }
+          }
         }
-      }, 1000);
+      }, 500);
     },
     stop: () => {
-      clearInterval(window.autoBombInterval);
+      clearInterval(window.autoMineInterval);
     },
   });
 
@@ -310,7 +320,7 @@
           ${autoGymTr}
           ${autoDungeonTr}
           ${allTtemsTr}
-          ${autoBombTr}
+          ${autoMineTr}
           ${autoFarmTr}
         </tbody>
       </table>
