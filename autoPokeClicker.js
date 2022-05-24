@@ -4,7 +4,7 @@
 // @version      0.2
 // @description  try to take over the world!
 // @author       Achaak & Raphael0010
-// @match        https://www.pokeclicker.com//
+// @match        https://www.pokeclicker.com
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=pokeclicker.com
 // @grant        none
 // @updateURL    https://raw.githubusercontent.com/Achaak/AutoPokeClicker/main/autoPokeClicker.js
@@ -13,6 +13,8 @@
 
 (function () {
   "use strict";
+
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   function keyGen(keyLength) {
     var i,
@@ -131,15 +133,108 @@
   const autoDungeonTr = createButton({
     name: "Auto Dungeon",
     start: () => {
-      window.autoDungeonInterval = setInterval(() => {
+      let inProgress = false;
+
+      window.autoLaunchDungeonInterval = setInterval(() => {
+        if (App.game.gameState === GameConstants.GameState.dungeon) {
+          return;
+        }
+
         const element = $('button[onclick*="initializeDungeon"]');
 
-        if (element) {
-          element.click();
+        if (!element) {
+          return;
         }
+        inProgress = false;
+        element.click();
       }, 1000);
+
+      let bossPos;
+
+      window.autoDungeonInterval = setInterval(async () => {
+        // if (DungeonRunner.dungeonFinished()) {
+        //   return;
+        // }
+        if (App.game.gameState !== GameConstants.GameState.dungeon) {
+          return;
+        }
+        if (DungeonRunner.fighting()) {
+          DungeonRunner.handleClick();
+          return;
+        }
+        const board = DungeonRunner.map.board();
+        const checkHasAllChest = () => {
+          for (let j = 0; j < board.length; j++) {
+            for (let i = 0; i < board[j].length; i++) {
+              if (
+                board[j][i].type() == GameConstants.DungeonTile.chest &&
+                !board[j][i].isVisited
+              ) {
+                return false;
+              }
+            }
+          }
+          return true;
+        };
+
+        const initBoard = () => {
+          for (let j = 0; j < board.length; j++) {
+            for (let i = 0; i < board[j].length; i++) {
+              board[j][i].x = i;
+              board[j][i].y = j;
+              if (board[j][i].type() == GameConstants.DungeonTile.boss) {
+                bossPos = board[j][i];
+              }
+            }
+          }
+        };
+        if (!inProgress) {
+          initBoard();
+        }
+
+        const move = () => {
+          if (!bossPos.isVisited || !checkHasAllChest()) {
+            const tiles = DungeonRunner.map.nearbyTiles(
+              DungeonRunner.map.playerPosition()
+            );
+            const unvisitedTiles = tiles.filter((t) => !t.isVisited);
+            if (unvisitedTiles.length > 0) {
+              const tile =
+                unvisitedTiles[
+                  Math.floor(Math.random() * unvisitedTiles.length)
+                ];
+              DungeonRunner.map.moveToCoordinates(tile.x, tile.y);
+            } else {
+              const tile = tiles[Math.floor(Math.random() * tiles.length)];
+              DungeonRunner.map.moveToCoordinates(tile.x, tile.y);
+            }
+            return;
+          }
+          DungeonRunner.map.moveToCoordinates(bossPos.x, bossPos.y);
+        };
+
+        switch (DungeonRunner.map.currentTile().type()) {
+          case GameConstants.DungeonTile.chest:
+            DungeonRunner.handleClick();
+            move();
+            break;
+          case GameConstants.DungeonTile.boss:
+            if (!checkHasAllChest()) {
+              move();
+            }
+            DungeonRunner.handleClick();
+            break;
+          case GameConstants.DungeonTile.enemy:
+            move();
+            break;
+          default:
+            move();
+            break;
+        }
+      }, 10);
     },
     stop: () => {
+      clearInterval(window.autoLaunchDungeonInterval);
       clearInterval(window.autoDungeonInterval);
     },
   });
