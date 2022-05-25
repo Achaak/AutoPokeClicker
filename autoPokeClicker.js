@@ -83,7 +83,7 @@
         } else if (dataBind.includes("Battle.clickAttack")) {
           Battle.clickAttack();
         }
-      }, 50);
+      }, 25);
     },
     stop: () => {
       clearInterval(window.autoHatcheryInterval);
