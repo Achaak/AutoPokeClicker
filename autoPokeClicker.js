@@ -335,12 +335,12 @@
         MapHelper.moveToRoute(route[0].route, route[0].region);
       };
 
-      window.autoFarmInterval = setInterval(f, 10000);
+      window.autoRouteInterval = setInterval(f, 10000);
 
       f();
     },
     stop: () => {
-      clearInterval(window.autoFarmInterval);
+      clearInterval(window.autoRouteInterval);
     },
   });
 
